@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verify Product | Secure QR System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+  <div class="header">
+    <a href="index.html" class="back-btn">← Back to Home</a>
+    <h1>🔍 Verify Product Authenticity</h1>
+    <p class="subtitle">Scan QR codes to verify genuine products and detect counterfeits</p>
+  </div>
+
+  <div class="container" style="text-align: center;">
+    <p style="margin-bottom: 25px; color: var(--text-light);">
+      Click the button below to start scanning product QR codes with your camera.
+    </p>
+
+    <button id="scanBtn" class="btn btn-success" style="font-size: 1.1rem;">
+      📷 Start Camera Scanner
+    </button>
+    
+    <div id="reader"></div>
+    <div id="resultBox" class="waiting">Waiting for QR code scan...</div>
+  </div>
+
+  <footer>© 2025 Secure QR System | Real-time Product Verification</footer>
+
+  <script>
+    const AES_KEY = "MY_SECRET_AES_KEY";
+    let html5QrCode;
+
+    function decryptQRCode(cipherText) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(cipherText, AES_KEY);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        return decrypted || null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function startScanning() {
+      const reader = document.getElementById("reader");
+      const btn = document.getElementById("scanBtn");
+      const resultBox = document.getElementById("resultBox");
+
+      reader.style.display = "block";
+      btn.disabled = true;
+      btn.innerHTML = "🔄 Scanning...";
+
+      html5QrCode = new Html5Qrcode("reader");
+      try {
+        const cameras = await Html5Qrcode.getCameras();
+        if (!cameras.length) throw new Error("No camera found");
+
+        let backCamera = cameras.find(c =>
+          c.label.toLowerCase().includes("back") ||
+          c.label.toLowerCase().includes("rear")
+        );
+
+        const cameraId = backCamera ? backCamera.id : cameras[0].id;
+
+        await html5QrCode.start(
+          cameraId,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            const decrypted = decryptQRCode(decodedText);
+            if (decrypted) {
+              resultBox.textContent = "✅ GENUINE PRODUCT: " + decrypted;
+              resultBox.className = "valid";
+            } else {
+              resultBox.textContent = "❌ COUNTERFEIT / TAMPERED PRODUCT!";
+              resultBox.className = "invalid";
+            }
+            stopScanning();
+          },
+          (error) => {
+            // Scanning errors handled silently
+          }
+        );
+      } catch (err) {
+        alert("Camera access failed: " + err.message);
+        stopScanning();
+      }
+    }
+
+    async function stopScanning() {
+      const reader = document.getElementById("reader");
+      const btn = document.getElementById("scanBtn");
+      if (html5QrCode && html5QrCode.isRunning()) {
+        await html5QrCode.stop();
+      }
+      reader.style.display = "none";
+      btn.disabled = false;
+      btn.innerHTML = "📷 Scan Again";
+    }
+
+    document.getElementById("scanBtn").addEventListener("click", startScanning);
+  </script>
+</body>
+</html>

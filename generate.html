@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generate Product QR | Secure QR System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+
+  <div class="header">
+    <a href="index.html" class="back-btn">← Back to Home</a>
+    <h1>🧾 Generate Secure QR Codes</h1>
+    <p class="subtitle">Create AES-encrypted QR codes for product authentication</p>
+  </div>
+
+  <div class="container">
+    <div class="input-group">
+      <label for="productInput">Product ID or Name</label>
+      <input id="productInput" type="text" placeholder="Enter Product ID (e.g. GC01)">
+    </div>
+
+    <div class="input-group">
+      <label for="countInput">Number of QR Codes</label>
+      <input id="countInput" type="number" placeholder="Enter quantity (e.g., 10)" min="1" value="1">
+    </div>
+
+    <button class="btn btn-primary" onclick="generateQRCodes()" style="width: 100%;">
+      🚀 Generate & Download ZIP
+    </button>
+    
+    <div id="status" class="status"></div>
+  </div>
+
+  <footer>© 2025 Secure QR System | Professional QR Code Generator</footer>
+
+  <script>
+    const AES_KEY = "MY_SECRET_AES_KEY";
+
+    async function generateQRCodes() {
+      const product = document.getElementById("productInput").value.trim();
+      const count = parseInt(document.getElementById("countInput").value);
+      const status = document.getElementById("status");
+
+      if (!product || !count || count <= 0) {
+        alert("Please enter valid product name and number of QR codes.");
+        return;
+      }
+
+      status.textContent = "🔄 Generating " + count + " encrypted QR codes... Please wait";
+      status.className = "status status-warning";
+
+      try {
+        const zip = new JSZip();
+        const folder = zip.folder("Secure_QR_Codes");
+        const qr = new QRious({ size: 250 });
+
+        for (let i = 1; i <= count; i++) {
+          const serial = `${product}_${i.toString().padStart(3, '0')}`;
+          const encrypted = CryptoJS.AES.encrypt(serial, AES_KEY).toString();
+
+          qr.value = encrypted;
+          const imgData = qr.toDataURL("image/png");
+          const base64Data = imgData.split(',')[1];
+          folder.file(`QR_${serial}.png`, base64Data, { base64: true });
+        }
+
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, `${product}_Secure_QRCodes.zip`);
+        
+        status.innerHTML = "✅ <strong>" + count + " QR codes generated successfully!</strong><br>Download complete. All codes are AES-encrypted and secure.";
+        status.className = "status status-success";
+        
+      } catch (error) {
+        status.textContent = "❌ Error generating QR codes. Please try again.";
+        status.className = "status status-danger";
+      }
+    }
+  </script>
+</body>
+</html>
