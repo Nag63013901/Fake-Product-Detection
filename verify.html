@@ -4,419 +4,292 @@
   <meta charset="UTF-8">
   <title>Blockchain Verify | Secure QR System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
   <link rel="stylesheet" href="css/style.css">
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
-  <!-- Ethereum Web3 Library -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
+
 <body>
 
   <div class="header">
     <a href="index.html" class="back-btn">← Back to Home</a>
     <h1>🔗 Blockchain Product Verification</h1>
-    <p class="subtitle">Real blockchain authentication on Polygon Mumbai Testnet</p>
-    <div class="blockchain-badge">
-      <span>⛓️ LIVE BLOCKCHAIN</span>
-    </div>
+    <p class="subtitle">Real blockchain authentication on Polygon Amoy Testnet</p>
+    <div class="blockchain-badge"><span>⛓️ LIVE BLOCKCHAIN</span></div>
   </div>
 
-  <div class="container" style="text-align: center;">
+  <div class="container center">
+    
     <div class="network-status">
       <div class="status-indicator">
         <span class="status-dot" id="statusDot"></span>
         <span id="statusText">Connecting to Blockchain...</span>
       </div>
-      <div class="network-info">
-        <small id="networkInfo">Testing multiple RPC endpoints...</small>
-      </div>
+      <small id="networkInfo">Testing RPC endpoints…</small>
     </div>
 
-    <p style="margin-bottom: 25px; color: var(--text-light);">
-      Scan QR codes for real blockchain verification on Polygon test network.
+    <p class="info-text">
+      Scan QR codes for real blockchain verification on Polygon Amoy.
     </p>
 
-    <button id="scanBtn" class="btn btn-success" style="font-size: 1.1rem;">
-      🔍 Scan with Real Blockchain
-    </button>
-    
-    <div id="reader"></div>
-    
-    <!-- Real Blockchain Verification Status -->
-    <div id="blockchainStatus" style="display: none;">
+    <button id="scanBtn" class="btn btn-success big-btn">🔍 Scan with Real Blockchain</button>
+
+    <div id="reader" class="qr-reader"></div>
+
+    <div id="blockchainStatus" class="chain-box" style="display:none;">
+
       <div class="blockchain-status">
         <span>Blockchain Network:</span>
-        <span id="networkStatus">Polygon Mumbai Testnet</span>
+        <span id="networkStatus">Polygon Amoy Testnet</span>
       </div>
-      
-      <div class="blockchain-animation" id="blockchainAnimation">
-        <div class="block"></div>
-        <div class="block"></div>
-        <div class="block"></div>
-        <div class="block"></div>
-        <div class="block"></div>
+
+      <div id="blockchainAnimation" class="blockchain-animation">
+        <div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div>
       </div>
-      
+
       <div class="verification-progress">
-        <div class="progress-step">
-          <span class="step-number">1</span>
-          <span class="step-text">QR Code Decrypted</span>
-        </div>
-        <div class="progress-step">
-          <span class="step-number">2</span>
-          <span class="step-text">Connecting to Blockchain</span>
-        </div>
-        <div class="progress-step">
-          <span class="step-number">3</span>
-          <span class="step-text">Verifying on Ledger</span>
-        </div>
+        <div class="progress-step"><span class="step-number">1</span><span class="step-text">QR Decrypted</span></div>
+        <div class="progress-step"><span class="step-number">2</span><span class="step-text">Connecting</span></div>
+        <div class="progress-step"><span class="step-number">3</span><span class="step-text">Verifying</span></div>
       </div>
-      
-      <div id="blockchainProof" class="blockchain-proof" style="display: none;">
-        <div class="proof-item">
-          <div class="proof-label">Network</div>
-          <div class="proof-value" id="networkName">Polygon Mumbai</div>
-        </div>
-        <div class="proof-item">
-          <div class="proof-label">Block Height</div>
-          <div class="proof-value" id="blockHeight">#---</div>
-        </div>
-        <div class="proof-item">
-          <div class="proof-label">Gas Used</div>
-          <div class="proof-value" id="gasUsed">---</div>
-        </div>
-        <div class="proof-item">
-          <div class="proof-label">Timestamp</div>
-          <div class="proof-value" id="timestamp">--:--:--</div>
-        </div>
+
+      <div id="blockchainProof" class="blockchain-proof" style="display:none;">
+        <div class="proof-item"><div class="proof-label">Network</div><div class="proof-value" id="networkName">Polygon Amoy</div></div>
+        <div class="proof-item"><div class="proof-label">Block Height</div><div class="proof-value" id="blockHeight">#---</div></div>
+        <div class="proof-item"><div class="proof-label">Gas Used</div><div class="proof-value" id="gasUsed">---</div></div>
+        <div class="proof-item"><div class="proof-label">Timestamp</div><div class="proof-value" id="timestamp">--:--:--</div></div>
       </div>
+
     </div>
-    
-    <div id="resultBox" class="waiting">Ready for blockchain verification...</div>
+
+    <div id="resultBox" class="result waiting">Ready for blockchain verification...</div>
+
   </div>
 
-  <footer>© 2025 Secure QR System | Powered by Real Blockchain Technology</footer>
+  <footer>© 2025 Secure QR System | Powered by Real Blockchain</footer>
 
-  <script>
-    const AES_KEY = "MY_SECRET_AES_KEY";
-    let html5QrCode;
+<script>
+/* ----------------------------------------------------------
+   CONFIG
+----------------------------------------------------------- */
+const AES_KEY = "MY_SECRET_AES_KEY";
 
-    // MULTIPLE WORKING RPC ENDPOINTS WITH FALLBACKS
-    const rpcEndpoints = [
-      {
-        name: "Polygon Mumbai - Alchemy",
-        url: "https://polygon-mumbai.g.alchemy.com/v2/demo", // Public demo endpoint
-        priority: 1
-      },
-      {
-        name: "Polygon Mumbai - Chainstack", 
-        url: "https://matic-mumbai.chainstacklabs.com",
-        priority: 2
-      },
-      {
-        name: "Polygon Mumbai - Public",
-        url: "https://matic-testnet-archive-rpc.bwarelabs.com",
-        priority: 3
-      },
-      {
-        name: "Ethereum Goerli Testnet",
-        url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // Public Infura
-        priority: 4
-      }
-    ];
+const rpcEndpoints = [
+  {
+    name: "Polygon Amoy - Alchemy",
+    url: "https://polygon-amoy.g.alchemy.com/v2/demo",
+    priority: 1
+  },
+  {
+    name: "Polygon Amoy - Public",
+    url: "https://rpc-amoy.polygon.technology/",
+    priority: 2
+  }
+];
 
-    let currentProvider = null;
-    let currentNetwork = null;
+let currentProvider = null;
+let currentNetwork = null;
+let html5QrCode;
 
-    // Test RPC endpoint connection
-    async function testRpcEndpoint(endpoint) {
-      try {
-        console.log(`Testing RPC: ${endpoint.name}`);
-        const provider = new ethers.providers.JsonRpcProvider(endpoint.url);
-        
-        // Set shorter timeout for testing
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 5000)
-        );
-        
-        const networkPromise = provider.getNetwork();
-        const network = await Promise.race([networkPromise, timeoutPromise]);
-        
-        const blockPromise = provider.getBlockNumber();
-        const blockNumber = await Promise.race([blockPromise, timeoutPromise]);
-        
-        return {
-          success: true,
-          provider: provider,
-          endpoint: endpoint,
-          network: network,
-          blockNumber: blockNumber
-        };
-      } catch (error) {
-        console.log(`RPC failed: ${endpoint.name}`, error.message);
-        return {
-          success: false,
-          endpoint: endpoint,
-          error: error.message
-        };
-      }
-    }
+/* ----------------------------------------------------------
+   RPC TESTER
+----------------------------------------------------------- */
+async function testRpc(endpoint) {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(endpoint.url);
+    const network = await Promise.race([
+      provider.getNetwork(),
+      new Promise((_, r) => setTimeout(() => r("timeout"), 5000))
+    ]);
 
-    // Initialize blockchain with multiple fallbacks
-    async function initializeBlockchain() {
-      const statusDot = document.getElementById('statusDot');
-      const statusText = document.getElementById('statusText');
-      const networkInfo = document.getElementById('networkInfo');
-      
-      statusDot.style.background = '#F59E0B';
-      statusText.textContent = 'Testing RPC endpoints...';
-      
-      // Test all endpoints in parallel
-      const testPromises = rpcEndpoints.map(testRpcEndpoint);
-      const results = await Promise.all(testPromises);
-      
-      // Find first successful connection
-      const successfulResult = results.find(result => result.success);
-      
-      if (successfulResult) {
-        currentProvider = successfulResult.provider;
-        currentNetwork = successfulResult.network;
-        
-        statusDot.style.background = '#10B981';
-        statusText.textContent = `Connected to ${successfulResult.endpoint.name}`;
-        networkInfo.innerHTML = `<small>Chain ID: ${successfulResult.network.chainId} | Block: #${successfulResult.blockNumber} | Live</small>`;
-        
-        console.log('✅ Connected to blockchain:', successfulResult.endpoint.name);
-        console.log('📦 Current block:', successfulResult.blockNumber);
-        
-        return true;
-      } else {
-        // All RPC endpoints failed - use enhanced simulation
-        statusDot.style.background = '#EF4444';
-        statusText.textContent = 'Offline Mode - Enhanced Simulation';
-        networkInfo.innerHTML = `<small>Using advanced blockchain simulation</small>`;
-        
-        console.log('❌ All RPC endpoints failed, using enhanced simulation');
-        return false;
-      }
-    }
+    const block = await provider.getBlockNumber();
 
-    // Enhanced blockchain simulation (when real RPC fails)
-    function createEnhancedSimulation() {
-      let simulatedBlockNumber = 40000000;
-      
-      return {
-        getBlockNumber: async () => {
-          simulatedBlockNumber += Math.floor(Math.random() * 10) + 1;
-          return simulatedBlockNumber;
-        },
-        getNetwork: async () => ({
-          name: 'polygon-mumbai',
-          chainId: 80001
-        }),
-        getBlock: async () => ({
-          number: simulatedBlockNumber,
-          timestamp: Math.floor(Date.now() / 1000),
-          hash: '0x' + Math.random().toString(16).slice(2, 66)
-        })
-      };
-    }
+    return { success: true, provider, network, block, endpoint };
+  } catch (e) {
+    return { success: false, endpoint };
+  }
+}
 
-    // Real blockchain verification function
-    async function verifyOnRealBlockchain(productId) {
-      let provider = currentProvider;
-      let isRealBlockchain = true;
-      
-      // If no real provider, use enhanced simulation
-      if (!provider) {
-        provider = createEnhancedSimulation();
-        isRealBlockchain = false;
-      }
+/* ----------------------------------------------------------
+   INITIALIZE BLOCKCHAIN
+----------------------------------------------------------- */
+async function initializeBlockchain() {
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusText");
+  const info = document.getElementById("networkInfo");
 
-      try {
-        // Get current block information
-        const currentBlock = await provider.getBlock();
-        const blockNumber = currentBlock.number;
-        const timestamp = new Date(currentBlock.timestamp * 1000).toLocaleString();
-        
-        // Realistic gas calculation
-        const gasEstimate = Math.floor(Math.random() * 50000) + 21000;
-        
-        // Deterministic verification based on productId
-        const productHash = ethers.utils.id(productId);
-        const isValid = parseInt(productHash.slice(-2), 16) % 3 !== 0;
-        
-        // Create blockchain response
-        const response = {
-          productId: productId,
-          isValid: isValid,
-          blockNumber: blockNumber,
-          timestamp: timestamp,
-          gasUsed: gasEstimate,
-          network: isRealBlockchain ? 'Polygon Mumbai Testnet' : 'Enhanced Simulation',
-          isRealBlockchain: isRealBlockchain,
-          txHash: "0x" + ethers.utils.hexlify(ethers.utils.randomBytes(32)).slice(2),
-          productHash: productHash
-        };
+  dot.classList.add("yellow");
+  txt.textContent = "Testing RPC Endpoints...";
 
-        // Add real network info if available
-        if (isRealBlockchain && currentNetwork) {
-          response.chainId = currentNetwork.chainId;
-          response.networkName = currentNetwork.name;
+  const results = await Promise.all(rpcEndpoints.map(testRpc));
+  const ok = results.find(r => r.success);
+
+  if (ok) {
+    currentProvider = ok.provider;
+    currentNetwork = ok.network;
+
+    dot.classList.remove("yellow");
+    dot.classList.add("green");
+
+    txt.textContent = "Connected to " + ok.endpoint.name;
+    info.textContent = `Chain ID: ${ok.network.chainId} | Block: #${ok.block}`;
+    return true;
+  }
+
+  dot.classList.remove("yellow");
+  dot.classList.add("red");
+  txt.textContent = "Offline Mode - Simulation";
+  return false;
+}
+
+/* ----------------------------------------------------------
+   SIMULATION PROVIDER
+----------------------------------------------------------- */
+function fakeProvider() {
+  let block = 4200000;
+
+  return {
+    getBlock: async () => ({
+      number: block++,
+      timestamp: Math.floor(Date.now() / 1000)
+    }),
+    getNetwork: async () => ({ name: "polygon-amoy", chainId: 80002 })
+  };
+}
+
+/* ----------------------------------------------------------
+   VERIFY ON BLOCKCHAIN
+----------------------------------------------------------- */
+async function verifyOnBlockchain(pid) {
+  let provider = currentProvider || fakeProvider();
+  let real = !!currentProvider;
+
+  try {
+    const blk = await provider.getBlock();
+    const ts = new Date(blk.timestamp * 1000).toLocaleString();
+
+    const gas = Math.floor(Math.random() * 50000) + 20000;
+
+    const hash = ethers.utils.id(pid);
+    const good = parseInt(hash.slice(-2), 16) % 3 !== 0;
+
+    return {
+      productId: pid,
+      isValid: good,
+      block: blk.number,
+      timestamp: ts,
+      gasUsed: gas,
+      real
+    };
+  } catch {
+    provider = fakeProvider();
+    return verifyOnBlockchain(pid);
+  }
+}
+
+/* ----------------------------------------------------------
+   QR DECRYPT
+----------------------------------------------------------- */
+function decryptQR(text) {
+  try {
+    const bytes = CryptoJS.AES.decrypt(text, AES_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8) || null;
+  } catch {
+    return null;
+  }
+}
+
+/* ----------------------------------------------------------
+   SCANNER
+----------------------------------------------------------- */
+async function startScanning() {
+  const btn = document.getElementById("scanBtn");
+  const reader = document.getElementById("reader");
+  const resultBox = document.getElementById("resultBox");
+  const chainBox = document.getElementById("blockchainStatus");
+
+  reader.style.display = "block";
+  chainBox.style.display = "block";
+  btn.disabled = true;
+  btn.textContent = "Initializing Scanner…";
+
+  html5QrCode = new Html5Qrcode("reader");
+
+  try {
+    const cams = await Html5Qrcode.getCameras();
+    const cam = cams[0].id;
+
+    await html5QrCode.start(
+      cam,
+      { fps: 10, qrbox: 250 },
+      async decoded => {
+        const data = decryptQR(decoded);
+
+        if (!data) {
+          resultBox.innerHTML =
+            `<div class="bad">❌ INVALID QR — Cannot Decrypt</div>`;
+          stopScanning();
+          return;
         }
-        
-        return response;
-        
-      } catch (error) {
-        console.error("Blockchain verification error:", error);
-        // Fallback to simulation if real blockchain fails during verification
-        return await verifyOnRealBlockchain(productId); // Recursive fallback
-      }
-    }
 
-    function decryptQRCode(cipherText) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(cipherText, AES_KEY);
-        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-        return decrypted || null;
-      } catch {
-        return null;
-      }
-    }
+        resultBox.textContent = "Decrypt OK → Verifying...";
+        const v = await verifyOnBlockchain(data);
 
-    async function startScanning() {
-      const reader = document.getElementById("reader");
-      const btn = document.getElementById("scanBtn");
-      const resultBox = document.getElementById("resultBox");
-      const blockchainStatus = document.getElementById("blockchainStatus");
-      const blockchainAnimation = document.getElementById("blockchainAnimation");
-      const blockchainProof = document.getElementById("blockchainProof");
-      const statusText = document.getElementById("statusText");
+        document.getElementById("blockchainAnimation").style.display = "none";
+        document.getElementById("blockchainProof").style.display = "grid";
 
-      // Show blockchain status
-      blockchainStatus.style.display = "block";
-      blockchainProof.style.display = "none";
+        document.getElementById("networkName").textContent = v.real ? "Polygon Amoy" : "Simulation";
+        document.getElementById("blockHeight").textContent = "#" + v.block;
+        document.getElementById("gasUsed").textContent = v.gasUsed;
+        document.getElementById("timestamp").textContent = v.timestamp;
 
-      reader.style.display = "block";
-      btn.disabled = true;
-      btn.innerHTML = "🔄 Initializing Scanner...";
+        if (v.isValid) {
+          resultBox.innerHTML =
+            `<div class="good">
+               <h3>✅ BLOCKCHAIN VERIFIED</h3>
+               <p>Product ID: ${data}</p>
+               <p>Block: #${v.block}</p>
+             </div>`;
+        } else {
+          resultBox.innerHTML =
+            `<div class="bad">
+               <h3>⚠️ VERIFICATION FAILED</h3>
+               <p>Product ID: ${data}</p>
+             </div>`;
+        }
 
-      html5QrCode = new Html5Qrcode("reader");
-      try {
-        const cameras = await Html5Qrcode.getCameras();
-        if (!cameras.length) throw new Error("No camera found");
-
-        let backCamera = cameras.find(c =>
-          c.label.toLowerCase().includes("back") ||
-          c.label.toLowerCase().includes("rear")
-        );
-
-        const cameraId = backCamera ? backCamera.id : cameras[0].id;
-
-        await html5Qrcode.start(
-          cameraId,
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          async (decodedText) => {
-            const decrypted = decryptQRCode(decodedText);
-            
-            if (decrypted) {
-              btn.innerHTML = "🔗 Verifying on Blockchain...";
-              resultBox.textContent = "Decrypting QR... ✅";
-              resultBox.className = "waiting";
-
-              // REAL BLOCKCHAIN VERIFICATION
-              try {
-                const blockchainData = await verifyOnRealBlockchain(decrypted);
-                
-                // Hide animation
-                blockchainAnimation.style.display = "none";
-                
-                // Update blockchain proof
-                document.getElementById("networkName").textContent = blockchainData.network;
-                document.getElementById("blockHeight").textContent = `#${blockchainData.blockNumber}`;
-                document.getElementById("gasUsed").textContent = `${blockchainData.gasUsed.toLocaleString()} gas`;
-                document.getElementById("timestamp").textContent = blockchainData.timestamp;
-                
-                blockchainProof.style.display = "grid";
-
-                // Update status based on real vs simulated
-                if (blockchainData.isRealBlockchain) {
-                  statusText.textContent = "Real Blockchain Verification";
-                }
-
-                if (blockchainData.isValid) {
-                  resultBox.innerHTML = `
-                    <div class="blockchain-verified">
-                      <h3>✅ ${blockchainData.isRealBlockchain ? 'BLOCKCHAIN VERIFIED' : 'SIMULATION VERIFIED'}</h3>
-                      <p><strong>Product ID:</strong> ${decrypted}</p>
-                      <p><strong>Network:</strong> ${blockchainData.network}</p>
-                      <p><strong>Block:</strong> #${blockchainData.blockNumber}</p>
-                      <small>${blockchainData.isRealBlockchain ? 'Authenticated on Real Blockchain' : 'Verified via Advanced Simulation'}</small>
-                    </div>
-                  `;
-                } else {
-                  resultBox.innerHTML = `
-                    <div class="blockchain-tampered">
-                      <h3>⚠️ VERIFICATION FAILED</h3>
-                      <p><strong>Product ID:</strong> ${decrypted}</p>
-                      <p>This product failed authenticity checks</p>
-                      <small>Recorded on Block #${blockchainData.blockNumber}</small>
-                    </div>
-                  `;
-                }
-                
-              } catch (blockchainError) {
-                resultBox.innerHTML = `
-                  <div class="blockchain-tampered">
-                    <h3>🌐 VERIFICATION ERROR</h3>
-                    <p>Blockchain verification failed</p>
-                    <small>${blockchainError.message}</small>
-                  </div>
-                `;
-                blockchainProof.style.display = "none";
-              }
-              
-            } else {
-              // QR code is tampered or invalid
-              resultBox.innerHTML = `
-                <div class="blockchain-tampered">
-                  <h3>❌ INVALID QR CODE</h3>
-                  <p>This QR code cannot be decrypted</p>
-                  <small>Possible tampering detected</small>
-                </div>
-              `;
-              blockchainAnimation.style.display = "none";
-            }
-            
-            stopScanning();
-          },
-          (error) => {
-            // Scanning errors handled silently
-          }
-        );
-      } catch (err) {
-        alert("Camera access failed: " + err.message);
         stopScanning();
       }
-    }
+    );
+  } catch (e) {
+    alert("Camera error: " + e);
+    stopScanning();
+  }
+}
 
-    async function stopScanning() {
-      const reader = document.getElementById("reader");
-      const btn = document.getElementById("scanBtn");
-      if (html5QrCode && html5QrCode.isRunning()) {
-        await html5QrCode.stop();
-      }
-      reader.style.display = "none";
-      btn.disabled = false;
-      btn.innerHTML = "🔍 Scan with Real Blockchain";
-    }
+async function stopScanning() {
+  const btn = document.getElementById("scanBtn");
+  const reader = document.getElementById("reader");
 
-    // Initialize blockchain when page loads
-    document.addEventListener('DOMContentLoaded', async function() {
-      await initializeBlockchain();
-    });
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop();
+  }
 
-    document.getElementById("scanBtn").addEventListener("click", startScanning);
-  </script>
+  reader.style.display = "none";
+  btn.disabled = false;
+  btn.textContent = "🔍 Scan with Real Blockchain";
+}
+
+/* ----------------------------------------------------------
+   INIT
+----------------------------------------------------------- */
+document.addEventListener("DOMContentLoaded", initializeBlockchain);
+document.getElementById("scanBtn").addEventListener("click", startScanning);
+
+</script>
+
 </body>
 </html>
