@@ -218,22 +218,30 @@ async function startScanning() {
 
   html5QrCode = new Html5Qrcode("reader");
 
-  try {
+  ttry {
     const cams = await Html5Qrcode.getCameras();
-    const cam = cams[0].id;
+
+    // Try to find the back camera automatically
+    let backCam = cams.find(c => 
+        c.label.toLowerCase().includes("back") || 
+        c.label.toLowerCase().includes("environment")
+    );
+
+    // If not found, fallback to last camera (most phones list back camera last)
+    const camId = backCam ? backCam.id : cams[cams.length - 1].id;
 
     await html5QrCode.start(
-      cam,
-      { fps: 10, qrbox: 250 },
-      async decoded => {
-        const data = decryptQR(decoded);
+        camId,
+        { fps: 10, qrbox: 250 },
+        async decoded => {
+            const data = decryptQR(decoded);
 
-        if (!data) {
-          resultBox.innerHTML =
-            `<div class="bad">❌ INVALID QR — Cannot Decrypt</div>`;
-          stopScanning();
-          return;
-        }
+            if (!data) {
+              resultBox.innerHTML =
+                `<div class="bad">❌ INVALID QR — Cannot Decrypt</div>`;
+              stopScanning();
+              return;
+            }
 
         resultBox.textContent = "Decrypt OK → Verifying...";
         const v = await verifyOnBlockchain(data);
