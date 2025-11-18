@@ -218,7 +218,7 @@ async function startScanning() {
 
   html5QrCode = new Html5Qrcode("reader");
 
-  ttry {
+  try {
     const cams = await Html5Qrcode.getCameras();
 
     // Try to find the back camera automatically
