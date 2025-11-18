@@ -168,9 +168,9 @@ async function verifyOnBlockchain(pid) {
   let real = !!currentProvider;
 
   try {
+    // --- Try real blockchain ---
     const blk = await provider.getBlock();
     const ts = new Date(blk.timestamp * 1000).toLocaleString();
-
     const gas = Math.floor(Math.random() * 50000) + 20000;
 
     const hash = ethers.utils.id(pid);
@@ -184,11 +184,24 @@ async function verifyOnBlockchain(pid) {
       gasUsed: gas,
       real
     };
-  } catch {
+  } catch (err) {
+    // --- Real RPC failed — use simulation ONCE, don’t call function again ---
     provider = fakeProvider();
-    return verifyOnBlockchain(pid);
+    const blk = await provider.getBlock();
+    const ts = new Date(blk.timestamp * 1000).toLocaleString();
+    const gas = Math.floor(Math.random() * 50000) + 20000;
+
+    return {
+      productId: pid,
+      isValid: true,      // simulation always positive (no looping)
+      block: blk.number,
+      timestamp: ts,
+      gasUsed: gas,
+      real: false
+    };
   }
 }
+
 
 /* ----------------------------------------------------------
    QR DECRYPT
